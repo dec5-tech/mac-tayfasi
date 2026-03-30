@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+
 import { Button } from "@/components/ui/button";
 import { SessionPayload } from "@/lib/auth";
 
@@ -31,14 +32,7 @@ export function Navbar({ session }: { session: SessionPayload | null }) {
                   }`}
                 />
               </span>
-              {session.isAdmin && (
-                <Link href="/matches/new">
-                  <Button variant="outline" size="sm">
-                    + Maç Oluştur
-                  </Button>
-                </Link>
-              )}
-              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+<Button variant="ghost" size="sm" onClick={handleSignOut}>
                 Çıkış
               </Button>
             </>
