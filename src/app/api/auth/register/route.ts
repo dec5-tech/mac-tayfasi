@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { rows: existing } = await pool.query(
-      "SELECT id FROM users WHERE email = $1",
+      "SELECT id FROM mac_users WHERE email = $1",
       [email]
     );
     if (existing.length > 0) {
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
 
     const passwordHash = await bcrypt.hash(password, 10);
     const { rows } = await pool.query(
-      "INSERT INTO users (email, password_hash, name, team) VALUES ($1, $2, $3, $4) RETURNING id, email, name, team, is_admin",
+      "INSERT INTO mac_users (email, password_hash, name, team) VALUES ($1, $2, $3, $4) RETURNING id, email, name, team, is_admin",
       [email, passwordHash, name, team]
     );
     const user = rows[0];

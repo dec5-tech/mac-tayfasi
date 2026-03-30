@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { rows } = await pool.query(
-      "SELECT * FROM users WHERE email = $1",
+      "SELECT * FROM mac_users WHERE email = $1",
       [email]
     );
     const user = rows[0];

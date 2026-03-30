@@ -17,7 +17,7 @@ export async function getUpcomingMatches(): Promise<MatchWithResponses[]> {
   const { rows: responses } = await pool.query(
     `SELECT mr.*, u.name AS user_name, u.team AS user_team
      FROM match_responses mr
-     JOIN users u ON u.id = mr.user_id
+     JOIN mac_users u ON u.id = mr.user_id
      WHERE mr.match_id = ANY($1)`,
     [matchIds]
   );
@@ -35,7 +35,7 @@ export async function getMatch(id: number): Promise<MatchWithResponses | null> {
   const { rows: responses } = await pool.query(
     `SELECT mr.*, u.name AS user_name, u.team AS user_team
      FROM match_responses mr
-     JOIN users u ON u.id = mr.user_id
+     JOIN mac_users u ON u.id = mr.user_id
      WHERE mr.match_id = $1
      ORDER BY mr.responded_at ASC`,
     [id]
