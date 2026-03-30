@@ -9,7 +9,8 @@ interface MatchCardProps {
   match: MatchWithResponses;
   userId: number;
   userTeam: TeamType;
-  recentAttendance: { match_id: number; user_id: number; status: string }[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  recentAttendance: any[];
 }
 
 export function MatchCard({ match, userId, userTeam, recentAttendance }: MatchCardProps) {

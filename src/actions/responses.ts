@@ -1,18 +1,16 @@
 "use server";
 
 import { getSession } from "@/lib/auth";
-import { pool } from "@/lib/db";
+import { sql } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
 export async function upsertResponse(matchId: number, status: "in" | "out") {
   const session = await getSession();
   if (!session) return { error: "Giriş yapmalısınız." };
 
-  // Beyan penceresi açık mı kontrol et
-  const { rows } = await pool.query(
-    "SELECT response_opens_at, response_closes_at FROM matches WHERE id = $1",
-    [matchId]
-  );
+  const rows = await sql`
+    SELECT response_opens_at, response_closes_at FROM matches WHERE id = ${matchId}
+  `;
   if (!rows[0]) return { error: "Maç bulunamadı." };
 
   const now = new Date();
@@ -23,13 +21,12 @@ export async function upsertResponse(matchId: number, status: "in" | "out") {
     return { error: "Beyan penceresi kapalı." };
   }
 
-  await pool.query(
-    `INSERT INTO match_responses (match_id, user_id, status, responded_at)
-     VALUES ($1, $2, $3, now())
-     ON CONFLICT (match_id, user_id)
-     DO UPDATE SET status = $3, responded_at = now()`,
-    [matchId, session.userId, status]
-  );
+  await sql`
+    INSERT INTO match_responses (match_id, user_id, status, responded_at)
+    VALUES (${matchId}, ${session.userId}, ${status}, now())
+    ON CONFLICT (match_id, user_id)
+    DO UPDATE SET status = ${status}, responded_at = now()
+  `;
 
   revalidatePath(`/matches/${matchId}`);
   revalidatePath("/dashboard");

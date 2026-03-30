@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { pool } from "@/lib/db";
+import { sql } from "@/lib/db";
 import { createSession } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
@@ -11,10 +11,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "E-posta ve şifre zorunlu." }, { status: 400 });
     }
 
-    const { rows } = await pool.query(
-      "SELECT * FROM mac_users WHERE email = $1",
-      [email]
-    );
+    const rows = await sql`SELECT * FROM mac_users WHERE email = ${email}`;
     const user = rows[0];
 
     if (!user) {

@@ -31,7 +31,8 @@ export default async function DashboardPage() {
                 match={match}
                 userId={session.userId}
                 userTeam={session.team}
-                recentAttendance={recentAttendance}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                recentAttendance={recentAttendance as any}
               />
             ))}
           </div>

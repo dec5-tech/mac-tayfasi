@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { pool } from "@/lib/db";
+import { sql } from "@/lib/db";
 import { createSession } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
@@ -14,19 +14,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Geçersiz takım." }, { status: 400 });
     }
 
-    const { rows: existing } = await pool.query(
-      "SELECT id FROM mac_users WHERE email = $1",
-      [email]
-    );
+    const existing = await sql`SELECT id FROM mac_users WHERE email = ${email}`;
     if (existing.length > 0) {
       return NextResponse.json({ error: "Bu e-posta zaten kayıtlı." }, { status: 409 });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const { rows } = await pool.query(
-      "INSERT INTO mac_users (email, password_hash, name, team) VALUES ($1, $2, $3, $4) RETURNING id, email, name, team, is_admin",
-      [email, passwordHash, name, team]
-    );
+    const rows = await sql`
+      INSERT INTO mac_users (email, password_hash, name, team)
+      VALUES (${email}, ${passwordHash}, ${name}, ${team})
+      RETURNING id, email, name, team, is_admin
+    `;
     const user = rows[0];
 
     await createSession({
