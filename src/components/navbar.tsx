@@ -2,16 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Profile } from "@/lib/types";
+import { SessionPayload } from "@/lib/auth";
 
-export function Navbar({ profile }: { profile: Profile | null }) {
+export function Navbar({ session }: { session: SessionPayload | null }) {
   const router = useRouter();
-  const supabase = createClient();
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
     router.refresh();
   };
@@ -23,17 +21,17 @@ export function Navbar({ profile }: { profile: Profile | null }) {
           ⚽ Maç Tayfası
         </Link>
         <div className="flex items-center gap-3">
-          {profile && (
+          {session && (
             <>
               <span className="text-sm text-muted-foreground">
-                {profile.name}
+                {session.name}
                 <span
                   className={`ml-1.5 inline-block w-2.5 h-2.5 rounded-full ${
-                    profile.team === "red" ? "bg-red-500" : "bg-gray-400"
+                    session.team === "red" ? "bg-red-500" : "bg-gray-400"
                   }`}
                 />
               </span>
-              {profile.is_admin && (
+              {session.isAdmin && (
                 <Link href="/matches/new">
                   <Button variant="outline" size="sm">
                     + Maç Oluştur

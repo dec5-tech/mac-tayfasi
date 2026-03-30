@@ -1,67 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { upsertResponse } from "@/actions/responses";
 import { ResponseStatus } from "@/lib/types";
 
 interface ResponseButtonProps {
-  matchId: string;
+  matchId: number;
   currentStatus: ResponseStatus | null;
 }
 
-export function ResponseButton({
-  matchId,
-  currentStatus,
-}: ResponseButtonProps) {
+export function ResponseButton({ matchId, currentStatus }: ResponseButtonProps) {
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
-  const supabase = createClient();
+  const [status, setStatus] = useState(currentStatus);
 
-  const handleResponse = async (status: ResponseStatus) => {
+  const handleResponse = async (newStatus: ResponseStatus) => {
     setLoading(true);
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      if (currentStatus === null) {
-        await supabase.from("match_responses").insert({
-          match_id: matchId,
-          user_id: user.id,
-          status,
-          responded_at: new Date().toISOString(),
-        });
-      } else {
-        await supabase
-          .from("match_responses")
-          .update({
-            status,
-            responded_at: new Date().toISOString(),
-          })
-          .eq("match_id", matchId)
-          .eq("user_id", user.id);
-      }
-      router.refresh();
-    } catch (err) {
-      console.error("Response error:", err);
-    } finally {
-      setLoading(false);
-    }
+    const result = await upsertResponse(matchId, newStatus);
+    if (!result.error) setStatus(newStatus);
+    setLoading(false);
   };
 
   return (
     <div className="flex gap-2">
       <Button
         size="sm"
-        variant={currentStatus === "in" ? "default" : "outline"}
-        className={
-          currentStatus === "in"
-            ? "bg-green-600 hover:bg-green-700"
-            : ""
-        }
+        variant={status === "in" ? "default" : "outline"}
+        className={status === "in" ? "bg-green-600 hover:bg-green-700" : ""}
         onClick={() => handleResponse("in")}
         disabled={loading}
       >
@@ -69,7 +34,7 @@ export function ResponseButton({
       </Button>
       <Button
         size="sm"
-        variant={currentStatus === "out" ? "destructive" : "outline"}
+        variant={status === "out" ? "destructive" : "outline"}
         onClick={() => handleResponse("out")}
         disabled={loading}
       >

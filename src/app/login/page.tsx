@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,27 +29,26 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const supabase = createClient();
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { name, team },
-          },
-        });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
+      const endpoint = isSignUp ? "/api/auth/register" : "/api/auth/login";
+      const body = isSignUp
+        ? { email, password, name, team }
+        : { email, password };
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Bir hata oluştu.");
+        return;
       }
       router.push("/dashboard");
       router.refresh();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Bir hata oluştu");
+    } catch {
+      setError("Sunucuya bağlanılamadı.");
     } finally {
       setLoading(false);
     }
@@ -60,9 +58,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-900 via-green-800 to-emerald-900 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">
-            ⚽ Maç Tayfası
-          </CardTitle>
+          <CardTitle className="text-2xl font-bold">⚽ Maç Tayfası</CardTitle>
           <CardDescription>
             {isSignUp ? "Kayıt ol ve kadroya katıl" : "Giriş yap"}
           </CardDescription>
@@ -133,24 +129,15 @@ export default function LoginPage() {
                 minLength={6}
               />
             </div>
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading
-                ? "Yükleniyor..."
-                : isSignUp
-                ? "Kayıt Ol"
-                : "Giriş Yap"}
+              {loading ? "Yükleniyor..." : isSignUp ? "Kayıt Ol" : "Giriş Yap"}
             </Button>
           </form>
           <div className="mt-4 text-center">
             <button
               type="button"
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                setError("");
-              }}
+              onClick={() => { setIsSignUp(!isSignUp); setError(""); }}
               className="text-sm text-muted-foreground hover:text-foreground"
             >
               {isSignUp
